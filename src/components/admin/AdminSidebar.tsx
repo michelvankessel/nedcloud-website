@@ -66,7 +66,7 @@ export function AdminSidebar() {
 
       <div className="p-4 border-t border-dark-700">
         <button
-          onClick={() => signOut({ callbackUrl: '/admin/login' })}
+          onClick={() => signOut({ callbackUrl: `${window.location.origin}/admin/login` })}
           className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-800 transition-all"
         >
           <LogOut size={20} />
