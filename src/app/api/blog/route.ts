@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const all = searchParams.get('all') === 'true'
+    
     const posts = await prisma.post.findMany({
-      where: { published: true },
-      orderBy: { publishedAt: 'desc' },
-      include: {
-        author: {
-          select: { name: true },
-        },
-      },
+      where: all ? {} : { published: true },
+      orderBy: { createdAt: 'desc' },
     })
     return NextResponse.json(posts)
   } catch (error) {
@@ -24,6 +22,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    
+    const adminUser = await prisma.user.findFirst({
+      where: { role: 'ADMIN' },
+    })
+    
+    if (!adminUser) {
+      return NextResponse.json({ error: 'No admin user found' }, { status: 500 })
+    }
+    
     const post = await prisma.post.create({
       data: {
         title: body.title,
@@ -35,7 +42,7 @@ export async function POST(request: NextRequest) {
         featured: body.featured || false,
         published: body.published || false,
         publishedAt: body.published ? new Date() : null,
-        authorId: body.authorId,
+        authorId: adminUser.id,
       },
     })
     return NextResponse.json(post, { status: 201 })

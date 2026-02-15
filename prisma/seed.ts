@@ -5,14 +5,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@nedcloudsolutions.nl'
-  const adminPassword = process.env.ADMIN_PASSWORD
-
-  if (!adminPassword) {
-    console.error('ERROR: ADMIN_PASSWORD environment variable is required for seeding.')
-    console.error('Set it before running prisma:seed:')
-    console.error('  ADMIN_PASSWORD=your-secure-password npm run prisma:seed')
-    process.exit(1)
-  }
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
 
   const adminUser = await prisma.user.upsert({
     where: { email: adminEmail },
@@ -44,7 +37,7 @@ async function main() {
   const services = [
     {
       title: 'Agentic AI Solutions',
-      slug: 'agentic-ai-solutions',
+      slug: 'agentic-ai',
       description: 'Intelligent autonomous agents that automate complex workflows and decision-making processes.',
       content: 'We design and implement agentic AI systems that can reason, plan, and execute complex tasks autonomously. From proof-of-concept to production deployment.',
       icon: 'brain',
@@ -54,7 +47,7 @@ async function main() {
     },
     {
       title: 'Infrastructure Architecture',
-      slug: 'infrastructure-architecture',
+      slug: 'infrastructure',
       description: 'Design and implement robust, scalable infrastructure for modern applications.',
       content: 'Enterprise-grade infrastructure design with a focus on reliability, security, and performance. CCIE-certified expertise in data center technologies.',
       icon: 'server',
@@ -64,7 +57,7 @@ async function main() {
     },
     {
       title: 'Cloud & DevOps',
-      slug: 'cloud-devops',
+      slug: 'cloud',
       description: 'Modernize your deployment pipeline with cloud-native practices.',
       content: 'Streamline your development workflow with CI/CD pipelines, container orchestration, and infrastructure as code.',
       icon: 'cloud',
@@ -74,7 +67,7 @@ async function main() {
     },
     {
       title: 'Full-Stack Development',
-      slug: 'fullstack-development',
+      slug: 'fullstack',
       description: 'End-to-end application development from concept to deployment.',
       content: 'Modern web applications built with the latest technologies. TypeScript, React, Next.js, Node.js, and cloud services.',
       icon: 'code',

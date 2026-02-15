@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const all = searchParams.get('all') === 'true'
+    
     const services = await prisma.service.findMany({
-      where: { published: true },
+      where: all ? {} : { published: true },
       orderBy: { order: 'asc' },
     })
     return NextResponse.json(services)

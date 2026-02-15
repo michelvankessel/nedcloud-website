@@ -2,6 +2,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: nedcloud-dev-db
+    env_file:
+      - .env.local
     environment:
       POSTGRES_USER: ${DB_USER:-nedcloud}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-nedcloud_dev}

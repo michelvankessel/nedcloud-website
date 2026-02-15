@@ -2,9 +2,11 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: nedcloud-db
+    env_file:
+      - .env.local
     environment:
       POSTGRES_USER: ${DB_USER:-nedcloud}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Database password required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nedcloud_dev}
       POSTGRES_DB: ${DB_NAME:-nedcloud}
     ports:
       - "${DB_PORT:-5432}:5432"
@@ -16,21 +18,38 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    image: node:20-alpine
+    container_name: nedcloud-migrate
+    env_file:
+      - .env.local
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npx prisma migrate deploy && npx prisma db seed"
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: nedcloud-app
+    env_file:
+      - .env.local
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-nedcloud}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?NextAuth secret required}
+      DATABASE_URL: postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-change-in-production}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
     depends_on:
-      postgres:
-        condition: service_healthy
-    command: sh -c "npx prisma migrate deploy && node server.js"
+      migrate:
+        condition: service_completed_successfully
+    command: ["node", "server.js"]
 
 volumes:
   postgres_data:
