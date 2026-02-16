@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer'
 import { ArrowRight, Check, Cpu, Server, Cloud, Code } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +78,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
               <div className="glass-card p-8 mb-12">
                 <div 
                   className="prose prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: service.content.replace(/\n/g, '<br />') }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(service.content.replace(/\n/g, '<br />')) }}
                 />
               </div>
 

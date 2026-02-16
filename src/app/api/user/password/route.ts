@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { compare, hash } from 'bcryptjs'
+import { validate, changePasswordSchema } from '@/lib/validations'
 
 export async function POST(request: Request) {
   const session = await auth()
@@ -12,15 +13,13 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { currentPassword, newPassword } = body
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    
+    const validation = validate(changePasswordSchema, body)
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Validation failed', details: validation.errors }, { status: 400 })
     }
-
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
-    }
+    
+    const { currentPassword, newPassword } = validation.data
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
