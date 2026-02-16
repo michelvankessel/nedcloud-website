@@ -7,6 +7,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const all = searchParams.get('all') === 'true'
     
+    if (all) {
+      const session = await auth()
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
+    
     const projects = await prisma.project.findMany({
       where: all ? {} : { published: true },
       orderBy: { createdAt: 'desc' },
