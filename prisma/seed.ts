@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { hash } from 'bcryptjs'
+import { securityConfig } from '../src/lib/security.config'
 
 const prisma = new PrismaClient()
 
@@ -13,7 +14,7 @@ async function main() {
     create: {
       email: adminEmail,
       name: 'Admin User',
-      password: await hash(adminPassword, 12),
+      password: await hash(adminPassword, securityConfig.session.passwordHashRounds),
       role: 'ADMIN',
     },
   })

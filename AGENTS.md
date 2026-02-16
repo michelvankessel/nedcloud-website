@@ -25,6 +25,7 @@ src/
 │   ├── sanitize.ts         # DOMPurify HTML sanitization
 │   ├── rateLimit.ts        # Rate limiting middleware
 │   ├── security.config.ts  # Central security configuration
+│   ├── utils.ts            # Utility functions (cn, etc.)
 │   └── validations.ts      # Zod input validation schemas
 └── types/                  # TypeScript declarations
 prisma/
