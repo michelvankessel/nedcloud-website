@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   output: 'standalone',
   images: {
     remotePatterns: [
@@ -12,6 +13,15 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: '/admin/login',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: [
@@ -47,7 +57,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",

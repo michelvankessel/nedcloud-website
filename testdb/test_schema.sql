@@ -1,0 +1,2 @@
+test table
+CREATE TABLE test_table (id SERIAL PRIMARY KEY, name VARCHAR(50), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
