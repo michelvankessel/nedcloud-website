@@ -8,19 +8,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Admin users with role-based access control and 2FA support.
+/// - ADMIN: Full access to all admin features
+/// - EDITOR: Can manage content but not settings/users
 model User {
    id            String    @id @default(cuid())
    email         String    @unique
    name          String?
-   password      String?
+   password      String?   // Hashed with bcrypt, null for OAuth-only users
    role          Role      @default(ADMIN)
    image         String?
    createdAt     DateTime  @default(now())
    updatedAt     DateTime  @updatedAt
-   twoFactorEnabled Boolean    @default(false)
-   twoFactorSecret String?
-   twoFactorBackupCodes String[]
-   twoFactorVerifiedAt DateTime?
+   
+   // Two-Factor Authentication
+   twoFactorEnabled Boolean    @default(false)      // Whether 2FA is enabled
+   twoFactorSecret  String?                         // Encrypted TOTP secret
+   twoFactorBackupCodes String[]                     // SHA-256 hashed backup codes
+   twoFactorVerifiedAt DateTime?                     // When 2FA was enabled
+   
+   // Relations
    accounts      Account[]
    sessions      Session[]
    posts         Post[]
@@ -30,185 +37,209 @@ model User {
    @@map("users")
 }
 
+/// User roles for access control.
 enum Role {
-  ADMIN
-  EDITOR
+  ADMIN   // Full access to all features
+  EDITOR  // Content management only
 }
 
+/// OAuth account linking for external providers.
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+   id                String  @id @default(cuid())
+   userId            String
+   type              String
+   provider          String
+   providerAccountId String
+   refresh_token     String? @db.Text
+   access_token      String? @db.Text
+   expires_at        Int?
+   token_type        String?
+   scope             String?
+   id_token          String? @db.Text
+   session_state     String?
+   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
+   @@unique([provider, providerAccountId])
+   @@map("accounts")
 }
 
+/// User sessions for authentication.
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+   id           String   @id @default(cuid())
+   sessionToken String   @unique
+   userId       String
+   expires      DateTime
+   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("sessions")
+   @@map("sessions")
 }
 
+/// Email verification and password reset tokens.
 model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+   identifier String
+   token      String   @unique
+   expires    DateTime
 
-  @@unique([identifier, token])
-  @@map("verification_tokens")
+   @@unique([identifier, token])
+   @@map("verification_tokens")
 }
 
+/// Services offered by Nedcloud Solutions.
+/// Displayed on homepage and services page.
+/// - Each service can have multiple projects
+/// - Order determines display sequence
 model Service {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String
-  content     String   @db.Text
-  icon        String?
-  features    String[] @default([])
-  order       Int      @default(0)
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  projects    Project[]
+   id          String   @id @default(cuid())
+   title       String
+   slug        String   @unique
+   description String
+   content     String   @db.Text
+   icon        String?
+   features    String[] @default([])
+   order       Int      @default(0)
+   published   Boolean  @default(false)
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+   projects    Project[]
 
-  @@map("services")
+   @@map("services")
 }
 
+/// Portfolio projects showcasing work.
+/// - Can be linked to a service
+/// - Featured projects displayed prominently
 model Project {
-  id          String      @id @default(cuid())
-  title       String
-  slug        String      @unique
-  description String
-  content     String      @db.Text
-  image       String?
-  technologies String[]   @default([])
-  url         String?
-  github      String?
-  featured    Boolean     @default(false)
-  published   Boolean     @default(false)
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  authorId    String
-  author      User        @relation(fields: [authorId], references: [id])
-  serviceId   String?
-  service     Service?    @relation(fields: [serviceId], references: [id])
+   id          String      @id @default(cuid())
+   title       String
+   slug        String      @unique
+   description String
+   content     String      @db.Text
+   image       String?
+   technologies String[]   @default([])
+   url         String?
+   github      String?
+   featured    Boolean     @default(false)
+   published   Boolean     @default(false)
+   startDate   DateTime?
+   endDate     DateTime?
+   createdAt   DateTime    @default(now())
+   updatedAt   DateTime    @updatedAt
+   authorId    String
+   author      User        @relation(fields: [authorId], references: [id])
+   serviceId   String?
+   service     Service?    @relation(fields: [serviceId], references: [id])
 
-  @@map("projects")
+   @@map("projects")
 }
 
+/// Blog posts for content marketing.
+/// - Auto-author: Defaults to first ADMIN on creation
+/// - Tags stored as array for filtering
 model Post {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  excerpt     String?
-  content     String    @db.Text
-  coverImage  String?
-  tags        String[]  @default([])
-  featured    Boolean   @default(false)
-  published   Boolean   @default(false)
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id])
+   id          String    @id @default(cuid())
+   title       String
+   slug        String    @unique
+   excerpt     String?
+   content     String    @db.Text
+   coverImage  String?
+   tags        String[]  @default([])
+   featured    Boolean   @default(false)
+   published   Boolean   @default(false)
+   publishedAt DateTime?
+   createdAt   DateTime  @default(now())
+   updatedAt   DateTime  @updatedAt
+   authorId    String
+   author      User      @relation(fields: [authorId], references: [id])
 
-  @@map("posts")
+   @@map("posts")
 }
 
+/// Client testimonials with approval workflow.
+/// - Must be approved to display publicly
+/// - Rating 1-5 stars
 model Testimonial {
-  id          String   @id @default(cuid())
-  name        String
-  role        String?
-  company     String?
-  content     String   @db.Text
-  avatar      String?
-  rating      Int      @default(5)
-  featured    Boolean  @default(false)
-  approved    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  authorId    String?
-  author      User?    @relation(fields: [authorId], references: [id])
+   id          String   @id @default(cuid())
+   name        String
+   role        String?
+   company     String?
+   content     String   @db.Text
+   avatar      String?
+   rating      Int      @default(5)
+   featured    Boolean  @default(false)
+   approved    Boolean  @default(false)
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+   authorId    String?
+   author      User?    @relation(fields: [authorId], references: [id])
 
-  @@map("testimonials")
+   @@map("testimonials")
 }
 
+/// Team members displayed on the about/team page.
+/// - Order determines display sequence
 model TeamMember {
-  id          String   @id @default(cuid())
-  name        String
-  role        String
-  bio         String?
-  image       String?
-  email       String?
-  linkedin    String?
-  github      String?
-  twitter     String?
-  order       Int      @default(0)
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+   id          String   @id @default(cuid())
+   name        String
+   role        String
+   bio         String?
+   image       String?
+   email       String?
+   linkedin    String?
+   github      String?
+   twitter     String?
+   order       Int      @default(0)
+   published   Boolean  @default(false)
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
 
-  @@map("team_members")
+   @@map("team_members")
 }
 
+/// Custom pages with SEO metadata.
 model Page {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  content     String   @db.Text
-  metaTitle       String?
-  metaDescription String?
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+   id          String   @id @default(cuid())
+   title       String
+   slug        String   @unique
+   content     String   @db.Text
+   metaTitle       String?
+   metaDescription String?
+   published   Boolean  @default(false)
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
 
-  @@map("pages")
+   @@map("pages")
 }
 
+/// Contact form submissions.
+/// - Status tracks response workflow
 model ContactSubmission {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  company   String?
-  subject   String?
-  message   String   @db.Text
-  status    String   @default("new")
-  createdAt DateTime @default(now())
+   id        String   @id @default(cuid())
+   name      String
+   email     String
+   company   String?
+   subject   String?
+   message   String   @db.Text
+   status    String   @default("new")  // new, read, replied, archived
+   createdAt DateTime @default(now())
 
-  @@map("contact_submissions")
+   @@map("contact_submissions")
 }
 
+/// Site-wide settings for branding and contact info.
+/// - Single row application settings
 model SiteSettings {
-  id            String   @id @default(cuid())
-  siteName      String   @default("Nedcloud Solutions")
-  siteTagline   String?
-  siteDescription String?
-  logo          String?
-  favicon       String?
-  email         String?
-  phone         String?
-  address       String?
-  socialLinks   Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+   id            String   @id @default(cuid())
+   siteName      String   @default("Nedcloud Solutions")
+   siteTagline   String?
+   siteDescription String?
+   logo          String?
+   favicon       String?
+   email         String?
+   phone         String?
+   address       String?
+   socialLinks   Json?    // { twitter, linkedin, github, etc }
+   createdAt     DateTime @default(now())
+   updatedAt     DateTime @updatedAt
 
-  @@map("site_settings")
+   @@map("site_settings")
 }

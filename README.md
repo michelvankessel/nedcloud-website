@@ -23,14 +23,18 @@ A modern, full-stack website for Nedcloud Solutions - Agentic AI & Infrastructur
 - CMS for content management (services, projects, blog, testimonials, team)
 - Contact form with submission tracking
 - Admin dashboard with authentication
+- Two-Factor Authentication (2FA) with TOTP
 - Docker deployment ready
 - **Security features:**
   - NextAuth v5 authentication with bcrypt password hashing
+  - Two-Factor Authentication (TOTP-based)
   - Rate limiting (100 API/10 auth requests per minute per IP)
   - Input validation with Zod schemas
   - XSS prevention with DOMPurify
   - Security headers (CSP, HSTS, X-Frame-Options, etc.)
   - Centralized security configuration
+  - Comprehensive security logging
+  - Automated database backups
 
 ---
 
@@ -285,6 +289,23 @@ nedcloud-website/
 - JWT-based sessions with role-based access (ADMIN/EDITOR)
 - Middleware protection for all `/admin/*` routes
 
+### Two-Factor Authentication (2FA)
+
+TOTP-based two-factor authentication is available for admin accounts:
+
+- **Compatible apps**: Google Authenticator, Authy, 1Password
+- **Setup**: Navigate to `/admin/settings` → Enable 2FA → Scan QR code
+- **Backup codes**: 8 single-use codes generated on setup for account recovery
+- **Flow**: After password login, users with 2FA enabled must enter a 6-digit code
+
+| Endpoint | Purpose |
+|----------|---------|
+| `/api/2fa/setup` | Generate TOTP secret and QR code |
+| `/api/2fa/verify` | Verify setup code and enable 2FA |
+| `/api/2fa/disable` | Disable 2FA (requires verification) |
+| `/api/2fa/status` | Check if 2FA is enabled |
+| `/api/2fa/login` | Verify 2FA during login flow |
+
 ### Rate Limiting
 
 Configured in `src/lib/security.config.ts`:
@@ -306,15 +327,44 @@ All API inputs validated with Zod schemas in `src/lib/validations.ts`:
 - DOMPurify sanitizes all HTML content
 - Use `sanitizeHtml(content)` from `@/lib/sanitize`
 
+### Security Logging
+
+All security events are logged to `logs/security.log`:
+
+| Event Type | Severity |
+|------------|----------|
+| Login success/failure | LOW/HIGH |
+| API requests | MEDIUM |
+| Form submissions | MEDIUM |
+| Rate limit exceeded | HIGH |
+| Suspicious requests | CRITICAL |
+
+Analyze logs: `npx ts-node scripts/analyze-logs.ts`
+
+### Backup & Recovery
+
+Automated database backups with 7-day retention:
+
+```bash
+# Create backup
+./scripts/backup.sh
+
+# Restore from backup
+./scripts/restore.sh /backups/nedcloud_20260217_120000.sql.gz
+```
+
+See `docs/backup-restore-procedure.md` for detailed instructions.
+
 ### Security Headers
 
 Automatically applied via `next.config.ts`:
-- Content-Security-Policy
+- Content-Security-Policy (no unsafe-eval)
 - Strict-Transport-Security (HSTS)
 - X-Frame-Options: SAMEORIGIN
 - X-Content-Type-Options: nosniff
 - Referrer-Policy: origin-when-cross-origin
 - Permissions-Policy: camera/microphone/geolocation disabled
+- X-Powered-By header removed
 
 ### Centralized Configuration
 
