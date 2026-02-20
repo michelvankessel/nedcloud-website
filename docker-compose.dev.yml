@@ -1,15 +1,13 @@
+
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: nedcloud-dev-db
     env_file:
       - .env.local
-    environment:
-      POSTGRES_USER: ${DB_USER:-nedcloud}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-nedcloud_dev}
-      POSTGRES_DB: ${DB_NAME:-nedcloud}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,6 +15,42 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    environment:
+      POSTGRES_USER: ${DB_USER:-nedcloud}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nedcloud_dev}
+      POSTGRES_DB: ${DB_NAME:-nedcloud}
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: nedcloud-dev-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run dev
+
+  studio:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: nedcloud-dev-studio
+    ports:
+      - "5555:5555"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npx prisma studio --hostname 0.0.0.0 --port 5555
 
 volumes:
   postgres_dev_data:

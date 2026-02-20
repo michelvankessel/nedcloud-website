@@ -1,0 +1,27 @@
+# Dockerfile for Development
+# Dockerfile for Development
+FROM node:20-slim
+
+# Install dependencies for Debian
+RUN apt-get update && apt-get install -y libc6 openssl && rm -rf /var/lib/apt/lists/*
+
+# Copy package files first for layer caching
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy and generate Prisma client
+COPY prisma/schema.prisma ./
+RUN npx prisma generate
+
+# Copy the rest of the application
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+EXPOSE 3000
+
+# Default command for development
+CMD ["npm", "run", "dev"]
