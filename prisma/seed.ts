@@ -5,8 +5,14 @@ import { securityConfig } from '../src/lib/security.config'
 const prisma = new PrismaClient()
 
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@nedcloudsolutions.nl'
-  const adminPassword = process.env.ADMIN_PASSWORD || 'changeme123'
+  const adminEmail = process.env.ADMIN_EMAIL
+  const adminPassword = process.env.ADMIN_PASSWORD
+  
+  if (!adminEmail || !adminPassword) {
+    console.error('Error: ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be set')
+    console.error('Example: ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=securepassword npx prisma db seed')
+    process.exit(1)
+  }
 
   const adminUser = await prisma.user.upsert({
     where: { email: adminEmail },

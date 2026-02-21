@@ -8,29 +8,29 @@ import { Card } from '@/components/ui/Card'
 const services = [
   {
     icon: Brain,
-    title: 'Agentic AI Solutions',
-    description: 'Intelligent autonomous agents that automate complex workflows and decision-making processes.',
+    title: 'Agentic AI Platform Engineering',
+    description: 'Design agentic infrastructure platforms where autonomous AI agents become operational assets—not just tools that assist, but agents that execute.',
     href: '/services/agentic-ai',
     color: 'text-neon-purple',
   },
   {
     icon: Server,
-    title: 'Infrastructure Architecture',
-    description: 'Enterprise-grade infrastructure design with a focus on reliability, security, and performance.',
+    title: 'Infrastructure Intelligence',
+    description: 'Self-healing systems, predictive monitoring, and infrastructure-as-code with AI reasoning. Your infrastructure foundation, now intelligent.',
     href: '/services/infrastructure',
     color: 'text-neon-blue',
   },
   {
     icon: Cloud,
-    title: 'Cloud & DevOps',
-    description: 'Modernize your deployment pipeline with cloud-native practices and CI/CD automation.',
+    title: 'Cloud-Native Evolution',
+    description: 'Multi-cloud architecture (Azure, AWS, GCP), Kubernetes orchestration, and DevOps pipelines with built-in AI intelligence.',
     href: '/services/cloud',
     color: 'text-neon-cyan',
   },
   {
     icon: Code,
-    title: 'Full-Stack Development',
-    description: 'End-to-end application development with modern technologies and best practices.',
+    title: 'LLM & RAG Implementation',
+    description: 'Enterprise-grade LLM deployment, RAG pipelines, and multi-tenant AI platforms with governance, observability, and cost control.',
     href: '/services/fullstack',
     color: 'text-neon-green',
   },
@@ -69,8 +69,8 @@ export const Services = () => {
             What I Can Do For You
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            From infrastructure architecture to intelligent AI agents, I help businesses
-            transform their technology landscape.
+            Bridging 25 years of infrastructure expertise with Agentic AI capabilities.
+            Designing platforms where AI agents become operational assets.
           </p>
         </motion.div>
 

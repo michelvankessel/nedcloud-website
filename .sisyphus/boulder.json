@@ -1,6 +1,9 @@
 {
-  "active_plan": "/home/blackcoindev/Development/nedcloud-website/.sisyphus/plans/security-hardening-phase1-phase2.md",
-  "started_at": "2026-02-16T16:33:41.490Z",
-  "session_ids": ["ses_3a30c3cb0ffes73g06clLPpUTs"],
-  "plan_name": "security-hardening-phase1-phase2"
+  "active_plan": "/home/blackcoindev/Development/nedcloud-website/.sisyphus/plans/docker-fullstack.md",
+  "started_at": "2026-02-21T08:53:23.497Z",
+  "session_ids": [
+    "ses_3a30c3cb0ffes73g06clLPpUTs"
+  ],
+  "plan_name": "docker-fullstack",
+  "agent": "atlas"
 }

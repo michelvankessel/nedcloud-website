@@ -27,16 +27,16 @@ services:
     container_name: nedcloud-dev-app
     ports:
       - "3000:3000"
+    env_file:
+      - .env.local
     volumes:
       - .:/app
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
     depends_on:
       postgres:
         condition: service_healthy
-    command: npm run dev
+    command: bash -c "rm -rf /app/.next && npx next dev --webpack"
 
   studio:
     build:

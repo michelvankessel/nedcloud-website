@@ -2,8 +2,8 @@
   "name": "nedcloud-website",
   "version": "1.0.0",
   "private": true,
+  "type": "commonjs",
   "scripts": {
-    "type": "commonjs",
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",

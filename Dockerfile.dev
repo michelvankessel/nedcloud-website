@@ -1,6 +1,8 @@
 # Dockerfile for Development
-# Dockerfile for Development
 FROM node:20-slim
+
+# Set working directory
+WORKDIR /app
 
 # Install dependencies for Debian
 RUN apt-get update && apt-get install -y libc6 openssl && rm -rf /var/lib/apt/lists/*
