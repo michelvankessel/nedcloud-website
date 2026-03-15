@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: nedcloud-db
+    restart: unless-stopped
     env_file:
       - .env.local
     environment:
@@ -32,12 +33,15 @@ services:
     volumes:
       - .:/app
     command: sh -c "npm install && npx prisma migrate deploy && npx prisma db seed"
+    profiles:
+      - migrate
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: nedcloud-app
+    restart: unless-stopped
     env_file:
       - .env.local
     ports:
@@ -45,8 +49,14 @@ services:
     environment:
       DATABASE_URL: postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     command: ["node", "server.js"]
 
 volumes:

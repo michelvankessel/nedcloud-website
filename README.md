@@ -120,7 +120,7 @@ brew install node@20 docker docker-compose
 
 4. **Start PostgreSQL database:**
    ```bash
-   docker-compose -f docker-compose.dev.yml up -d
+   docker compose -f docker-compose.dev.yml up -d
    ```
    
    This starts a PostgreSQL container. Credentials are read from your `.env.local` file.
@@ -193,10 +193,10 @@ npm run prisma:seed      # Seed database with initial data
 npm run db:push          # Push schema changes (no migrations)
 
 # Docker
-docker-compose -f docker-compose.dev.yml up -d    # Start dev database
-docker-compose -f docker-compose.dev.yml down     # Stop dev database
-docker-compose up -d                               # Production deployment
-docker-compose down                                # Stop production
+docker compose -f docker-compose.dev.yml up -d    # Start dev database
+docker compose -f docker-compose.dev.yml down     # Stop dev database
+docker compose up -d                               # Production deployment
+docker compose down                                # Stop production
 ```
 
 ---
@@ -249,7 +249,7 @@ nedcloud-website/
 │   │   ├── rateLimit.ts            # Rate limiting middleware
 │   │   ├── security.config.ts      # Central security configuration
 │   │   └── validations.ts          # Zod validation schemas
-│   ├── middleware.ts               # Auth middleware for admin routes
+│   ├── proxy.ts                    # Auth middleware for admin routes (renamed from middleware.ts)
 │   └── types/                      # TypeScript declarations
 ├── prisma/
 │   ├── schema.prisma               # Database models
@@ -412,13 +412,13 @@ export const securityConfig = {
 
 ```bash
 # Build and start
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop
-docker-compose down
+docker compose down
 ```
 
 ### Manual Deployment
@@ -451,13 +451,13 @@ npm run start
 
 ```bash
 # Check if database is running
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 
 # View database logs
-docker-compose -f docker-compose.dev.yml logs postgres
+docker compose -f docker-compose.dev.yml logs postgres
 
 # Restart database
-docker-compose -f docker-compose.dev.yml restart postgres
+docker compose -f docker-compose.dev.yml restart postgres
 ```
 
 ### Prisma Client Error

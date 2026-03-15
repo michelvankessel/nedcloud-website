@@ -100,12 +100,11 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-#### 3. Middleware Rate Limiting Gap ⚠️ RENAMED
+#### 3. Middleware Rate Limiting Gap ✅ FIXED
 **File:** `src/middleware.ts` → `src/proxy.ts`
-**Issue:** File renamed from `middleware.ts` to `proxy.ts` (Next.js convention update)
+**Status:** ✅ RESOLVED - File renamed to `src/proxy.ts` per Next.js convention
 **Current State:** Rate limiting implemented at individual API route level, which is actually more granular and effective
-**Impact:** Documentation references outdated filename
-**Fix:** Update documentation to reference `proxy.ts`
+**Impact:** Documentation updated to reference `proxy.ts`
 
 ---
 
@@ -156,7 +155,7 @@ src/
 │   ├── rateLimit.ts        # Rate limiting
 │   ├── validations.ts      # Zod schemas
 │   └── sanitize.ts         # XSS prevention
-└── middleware.ts           # Route protection
+└── proxy.ts                # Route protection (renamed from middleware.ts)
 ```
 
 ### Non-Standard Patterns
@@ -164,7 +163,7 @@ src/
 | Pattern | Purpose | Risk |
 |---------|---------|------|
 | `(dashboard)` route group | Admin route organization | Low - clarifies structure |
-| `middleware.ts` outside app | Route protection | Medium - non-standard placement |
+| `proxy.ts` outside app | Route protection | Low - renamed from middleware.ts per Next.js convention |
 | CRUD managers in components/admin | Reusable admin UI | Low - good separation |
 
 ---
@@ -187,7 +186,7 @@ src/
 | No rate limiting on 2FA endpoints | High | `/api/2fa/*` |
 | No admin action logging | Medium | All admin routes |
 | TOTP verification bug | Medium | `/api/2fa/verify/` |
-| No rate limiting in middleware | High | `src/middleware.ts` |
+| No rate limiting in middleware | High | `src/proxy.ts` |
 
 ---
 

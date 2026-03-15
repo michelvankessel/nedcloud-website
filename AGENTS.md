@@ -1,7 +1,7 @@
 # NEDCLOUD WEBSITE KNOWLEDGE BASE
 
-**Generated:** 2026-02-17T14:15:44+01:00
-**Commit:** 64fc5af
+**Generated:** 2026-03-15T22:07:00+01:00
+**Commit:** 1492a63
 **Branch:** main
 **Stack:** Next.js 16 (App Router), TypeScript, Tailwind CSS v3.4, Prisma 6, PostgreSQL, NextAuth v5
 
@@ -16,16 +16,26 @@ src/
 ├── app/                    # App Router (pages, layouts, API routes)
 │   ├── admin/(dashboard)/  # Protected admin area with route groups
 │   ├── admin/login/        # Login page with 2FA support
-│   └── api/                # REST endpoints (CRUD for all content types)
-│       ├── 2fa/            # Two-factor authentication endpoints
-│       ├── auth/[...all]/  # NextAuth handlers
-│       ├── blog/           # Blog CRUD
-│       ├── contact/        # Contact form submissions
-│       ├── projects/       # Projects CRUD
-│       ├── services/       # Services CRUD
-│       ├── team/           # Team members CRUD
-│       ├── testimonials/   # Testimonials CRUD
-│       └── user/           # User profile & password
+│   ├── admin/verify-2fa/   # 2FA verification page (empty - needs implementation)
+│   ├── api/                # REST endpoints (CRUD for all content types)
+│   │   ├── 2fa/
+│   │   │   ├── setup/route.ts      # Generate TOTP secret + QR code
+│   │   │   ├── verify/route.ts     # Verify setup code
+│   │   │   ├── disable/route.ts    # Disable 2FA
+│   │   │   ├── status/route.ts     # Check 2FA status
+│   │   │   └── login/route.ts      # Verify 2FA during login
+│   │   ├── auth/[...all]/  # NextAuth handlers
+│   │   ├── blog/[id]/      # Blog CRUD with ID param
+│   │   ├── contact/[id]/   # Contact form submissions with ID param
+│   │   ├── health/         # Health check endpoint
+│   │   ├── pages/          # Pages API (empty - needs implementation)
+│   │   ├── projects/[id]/  # Projects CRUD with ID param
+│   │   ├── services/[id]/  # Services CRUD with ID param
+│   │   ├── team/[id]/      # Team members CRUD with ID param
+│   │   ├── testimonials/[id]/ # Testimonials CRUD with ID param
+│   │   └── user/           # User profile & password
+│   └── services/[slug]/    # Service detail page
+│   # Note: blog/[slug]/ is documented but not yet implemented
 ├── components/
 │   ├── admin/              # CRUD managers for CMS (modal pattern)
 │   ├── layout/             # Header, Footer
@@ -41,14 +51,22 @@ src/
 │   ├── totp.ts             # TOTP utilities for 2FA
 │   ├── utils.ts            # Utility functions (cn, etc.)
 │   └── validations.ts      # Zod input validation schemas
+├── proxy.ts                # Middleware for admin route protection (was middleware.ts)
 └── types/                  # TypeScript declarations
 prisma/
 ├── schema.prisma           # Models: User, Service, Project, Post, Testimonial, TeamMember, ContactSubmission, SiteSettings, Page
-└── seed.ts                 # Initial data + admin user
+├── seed.ts                 # Initial data + admin user
+└── migrations/             # Database migration history
 scripts/
 ├── backup.sh               # Automated database backup (7-day retention)
 ├── restore.sh              # Database restoration script
-└── analyze-logs.ts         # Security log analysis utility
+├── analyze-logs.ts         # Security log analysis utility
+├── test-logger.js          # Test utility for logging
+└── check_syntax.sh         # Syntax checking script
+docs/
+├── api-reference.md        # Complete API documentation
+├── 2fa-implementation.md   # 2FA setup and troubleshooting
+└── backup-restore-procedure.md # Database backup/restore guide
 ```
 
 ## WHERE TO LOOK
@@ -84,7 +102,7 @@ scripts/
 ### Authentication & Authorization
 - **NextAuth v5** with credentials provider (bcryptjs password hashing)
 - **Two-Factor Authentication (2FA)**: TOTP-based (Google Authenticator, Authy compatible)
-- **Middleware protection**: `src/proxy.ts` protects all `/admin/*` routes (previously middleware.ts, renamed per Next.js convention)
+- **Middleware protection**: `src/proxy.ts` protects all `/admin/*` routes (renamed from middleware.ts per Next.js convention)
 - **API authentication**: All mutation routes (POST, PUT, DELETE) require valid session
 - **Session strategy**: JWT with role-based access (ADMIN, EDITOR)
 
@@ -171,9 +189,37 @@ scripts/
 ```bash
 npm run dev              # Development server (localhost:3000)
 npm run build            # Production build (includes prisma generate)
-docker compose up -d     # Production deployment
-docker compose -f docker-compose.dev.yml up -d  # Dev database only
+docker compose up -d     # Production deployment (DB + app)
+docker compose -f docker-compose.dev.yml up -d   # Dev stack (DB + app + studio)
+docker compose -f docker-compose.dev.yml --profile migrate run --rm migrate  # Run migrations
+docker compose -f docker-compose.dev.yml --profile studio up -d studio    # Prisma Studio only
 npx prisma studio        # Database GUI at localhost:5555
+```
+
+## DOCKER DEPLOYMENT
+
+### Production
+```bash
+# 1. Run migrations first (one-off)
+docker compose --profile migrate run --rm migrate
+
+# 2. Start services
+docker compose up -d
+
+# Services auto-restart on failure (restart: unless-stopped)
+# Healthcheck: /api/health endpoint monitored every 30s
+```
+
+### Development
+```bash
+# Start DB + dev server
+docker compose -f docker-compose.dev.yml up -d
+
+# Optional: run migrations in container
+docker compose -f docker-compose.dev.yml --profile migrate run --rm migrate
+
+# Optional: Prisma Studio on port 5555
+docker compose -f docker-compose.dev.yml --profile studio up studio
 ```
 
 ## NOTES
