@@ -42,9 +42,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
     container_name: nedcloud-dev-app
     ports:
       - "${APP_PORT:-3000}:3000"
@@ -52,20 +49,19 @@ services:
       - .env.local
     volumes:
       - .:/app
+      - /app/node_modules
+      - next_cache:/app/.next
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
     depends_on:
       postgres:
         condition: service_healthy
-    command: bash -c "rm -rf /app/.next && npx next dev --webpack"
+    command: ["sh", "-c", "mkdir -p /app/.next && chown -R 1000:1000 /app/.next && npx next dev --webpack"]
 
   studio:
     build:
       context: .
       dockerfile: Dockerfile.dev
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
     container_name: nedcloud-dev-studio
     ports:
       - "${STUDIO_PORT:-5555}:5555"
@@ -80,3 +76,4 @@ services:
 
 volumes:
   postgres_dev_data:
+  next_cache:

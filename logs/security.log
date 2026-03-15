@@ -349,3 +349,81 @@
   }
 }
 
+{
+  "type": "API_REQUEST",
+  "timestamp": "2026-03-15T23:17:55.337Z",
+  "severity": "MEDIUM",
+  "ip": "192.168.14.11",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "details": {
+    "method": "GET",
+    "route": "/api/testimonials",
+    "status": 200
+  }
+}
+
+{
+  "type": "API_REQUEST",
+  "timestamp": "2026-03-15T23:19:07.217Z",
+  "severity": "MEDIUM",
+  "ip": "192.168.14.11",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "details": {
+    "method": "GET",
+    "route": "/api/testimonials",
+    "status": 200
+  }
+}
+
+{
+  "type": "API_REQUEST",
+  "timestamp": "2026-03-15T23:30:26.609Z",
+  "severity": "MEDIUM",
+  "ip": "192.168.14.11",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "details": {
+    "method": "GET",
+    "route": "/api/testimonials",
+    "status": 200
+  }
+}
+
+{
+  "type": "API_REQUEST",
+  "timestamp": "2026-03-15T23:30:26.833Z",
+  "severity": "MEDIUM",
+  "ip": "192.168.14.11",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "details": {
+    "method": "GET",
+    "route": "/api/testimonials",
+    "status": 200
+  }
+}
+
+{
+  "type": "API_REQUEST",
+  "timestamp": "2026-03-15T23:32:20.571Z",
+  "severity": "MEDIUM",
+  "ip": "192.168.14.11",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "details": {
+    "method": "GET",
+    "route": "/api/testimonials",
+    "status": 200
+  }
+}
+
+{
+  "type": "API_REQUEST",
+  "timestamp": "2026-03-15T23:32:20.574Z",
+  "severity": "MEDIUM",
+  "ip": "192.168.14.11",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "details": {
+    "method": "GET",
+    "route": "/api/testimonials",
+    "status": 200
+  }
+}
+

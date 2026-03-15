@@ -411,7 +411,10 @@ export const securityConfig = {
 ### Docker Compose (recommended)
 
 ```bash
-# Build and start
+# 1. Run migrations first (one-off)
+docker compose --profile migrate run --rm migrate
+
+# 2. Build and start services
 docker compose up -d
 
 # View logs
