@@ -1,7 +1,7 @@
 # NEDCLOUD WEBSITE KNOWLEDGE BASE
 
-**Generated:** 2026-03-15T22:07:00+01:00
-**Commit:** 1492a63
+**Generated:** 2026-05-21T21:52:33Z
+**Commit:** bf783fb
 **Branch:** main
 **Stack:** Next.js 16 (App Router), TypeScript, Tailwind CSS v3.4, Prisma 6, PostgreSQL, NextAuth v5
 

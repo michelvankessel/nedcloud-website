@@ -1,5 +1,7 @@
 # Admin CRUD Managers
 
+**Generated:** 2026-05-21T21:52:33Z
+**Commit:** bf783fb
 **Purpose:** CMS components with modal pattern for content management.
 
 ## Pattern
