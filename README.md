@@ -6,11 +6,11 @@ A modern, full-stack website for Nedcloud Solutions - Agentic AI & Infrastructur
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS v3.4 (custom dark theme) |
+| Framework | Next.js 16.2.6 (App Router) |
+| Language | TypeScript 6.0.3 |
+| Styling | Tailwind CSS v4.3.0 (custom dark theme) |
 | Database | PostgreSQL 16 |
-| ORM | Prisma 6 |
+| ORM | Prisma 7.8.0 |
 | Authentication | NextAuth.js v5 |
 | Animations | Framer Motion |
 | Icons | Lucide React |

@@ -1,9 +1,9 @@
 # NEDCLOUD WEBSITE KNOWLEDGE BASE
 
-**Generated:** 2026-05-21T21:52:33Z
-**Commit:** bf783fb
+**Generated:** 2026-05-21T22:55:40Z
+**Commit:** b1c799c
 **Branch:** main
-**Stack:** Next.js 16 (App Router), TypeScript, Tailwind CSS v3.4, Prisma 6, PostgreSQL, NextAuth v5
+**Stack:** Next.js 16.2.6 (App Router), TypeScript 6.0.3, Tailwind CSS v4.3.0, Prisma 7.8.0, PostgreSQL, NextAuth v5.0.0-beta.31
 
 ## OVERVIEW
 
@@ -224,7 +224,7 @@ docker compose -f docker-compose.dev.yml --profile studio up studio
 
 ## NOTES
 
-- Prisma 6 used (v7 has breaking changes)
+- Prisma 7.8.0 (latest stable)
 - `trustHost: true` required in `auth.ts` for Docker/reverse proxy
 - Alpine Linux containers need `binaryTargets: ["linux-musl-openssl-3.0.x"]` in schema
 - Service slugs: `agentic-ai`, `infrastructure`, `cloud`, `fullstack`
