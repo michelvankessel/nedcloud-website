@@ -68,7 +68,7 @@ export default async function AdminDashboard() {
           </h2>
           {recentContacts.length > 0 ? (
             <div className="space-y-4">
-              {recentContacts.map((contact) => (
+              {recentContacts.map((contact: { id: string; name: string; email: string; company: string | null; subject: string | null; message: string; status: string; createdAt: Date }) => (
                 <div
                   key={contact.id}
                   className="p-4 bg-dark-700/50 rounded-lg"

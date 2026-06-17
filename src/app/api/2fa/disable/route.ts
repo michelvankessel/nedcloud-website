@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { verifyTOTP, verifyBackupCode } from '@/lib/totp'
+import { verifyTOTP, verifyBackupCode, decryptSecret } from '@/lib/totp'
 import { rateLimit } from '@/lib/rateLimit'
 
 const authRateLimit = rateLimit('auth')
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const decryptedSecret = require('@/lib/totp').decryptSecret(user.twoFactorSecret!)
+    const decryptedSecret = decryptSecret(user.twoFactorSecret!)
     const isValidTOTP = verifyTOTP(token, decryptedSecret)
 
     if (isValidTOTP) {

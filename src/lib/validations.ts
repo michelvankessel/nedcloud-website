@@ -89,7 +89,7 @@ export type ValidationResult<T> =
   | { success: true; data: T }
   | { success: false; errors: string[] }
 
-export function validate<T>(schema: z.ZodSchema<T>, data: unknown): ValidationResult<T> {
+export function validate<T>(schema: z.ZodType<T>, data: unknown): ValidationResult<T> {
   const result = schema.safeParse(data)
   
   if (result.success) {

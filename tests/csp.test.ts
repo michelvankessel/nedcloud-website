@@ -1,7 +1,7 @@
 import request from 'supertest'
 import app from '@/app'
 
-declare const app: any
+declare const app: object
 
 it('should set CSP header without unsafe directives', async () => {
   const res = await request(app).get('/')

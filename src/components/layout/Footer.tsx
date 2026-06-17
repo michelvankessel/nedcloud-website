@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Linkedin, Github, Twitter, Mail } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import { LinkedinIcon, GithubIcon } from '@/components/ui/BrandIcons'
 
 const footerLinks = {
   services: [
@@ -19,8 +20,8 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { href: 'https://www.linkedin.com/in/michelvankessel', icon: Linkedin, label: 'LinkedIn' },
-  { href: 'https://github.com/NedCloud', icon: Github, label: 'GitHub' },
+  { href: 'https://www.linkedin.com/in/michelvankessel', icon: LinkedinIcon, label: 'LinkedIn' },
+  { href: 'https://github.com/NedCloud', icon: GithubIcon, label: 'GitHub' },
   { href: 'mailto:info@nedcloudsolutions.nl', icon: Mail, label: 'Email' },
 ]
 

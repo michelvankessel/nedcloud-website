@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Eye, EyeOff, X, Linkedin, Github, Twitter, Mail } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, EyeOff, X, Mail } from 'lucide-react'
+import { LinkedinIcon, GithubIcon, TwitterIcon } from '@/components/ui/BrandIcons'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
@@ -163,17 +164,17 @@ export function TeamManager({ initialMembers }: { initialMembers: TeamMember[] }
                   <div className="flex items-center gap-2">
                     {member.linkedin && (
                       <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-neon-blue">
-                        <Linkedin size={16} />
+                        <LinkedinIcon size={16} />
                       </a>
                     )}
                     {member.github && (
                       <a href={member.github} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
-                        <Github size={16} />
+                        <GithubIcon size={16} />
                       </a>
                     )}
                     {member.twitter && (
                       <a href={member.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-neon-blue">
-                        <Twitter size={16} />
+                        <TwitterIcon size={16} />
                       </a>
                     )}
                     {member.email && (

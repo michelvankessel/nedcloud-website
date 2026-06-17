@@ -86,7 +86,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
                 <div className="mb-12">
                   <h2 className="heading-md text-white mb-6">Key Features</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {service.features.map((feature, index) => (
+                    {service.features.map((feature: string, index: number) => (
                       <div
                         key={index}
                         className="flex items-center gap-3 p-4 bg-dark-800/50 rounded-lg border border-dark-700/50"
