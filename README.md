@@ -172,7 +172,7 @@ prisma/
 prisma.config.ts            # Prisma v7 configuration
 postcss.config.mjs          # PostCSS (Tailwind v4 plugin)
 next.config.ts              # Next.js configuration
-Dockerfile                  # Multi-stage production build
+Dockerfile                  # Multi-stage production build (Node 24)
 docker-compose.yml          # Production deployment
 docker-compose.dev.yml      # Development database
 ```
@@ -194,10 +194,8 @@ See `.env.local.example` for full documentation.
 | `NEXTAUTH_URL` | Yes | Application base URL |
 | `ADMIN_EMAIL` | Seeding | Admin email for initial seed |
 | `ADMIN_PASSWORD` | Seeding | Admin password for initial seed |
-| `APP_PORT` | No | App port override (default: 3000) |
-| `STUDIO_PORT` | No | Prisma Studio port (default: 5555) |
 
-**Note:** For Docker Compose, change `DATABASE_URL` host from `localhost` to `postgres`.
+**Note:** For Docker Compose production, change `DATABASE_URL` host from `localhost` to `postgres`.
 
 ---
 
@@ -263,15 +261,20 @@ Configured in `src/lib/security.config.ts`:
 ### Docker Compose
 
 ```bash
-docker compose --profile migrate run --rm migrate   # Run migrations (one-off)
+# Production
 docker compose up -d                                 # Start services
 docker compose logs -f                               # View logs
 docker compose down                                  # Stop
 ```
 
-### Manual
+### Manual Deployment
 
 ```bash
+# Run migrations on the host first
+npm run prisma:migrate
+npm run prisma:seed
+
+# Build and start
 DATABASE_URL="your-production-url" \
 NEXTAUTH_SECRET="your-production-secret" \
 NEXTAUTH_URL="https://yourdomain.com" \

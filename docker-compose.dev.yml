@@ -1,5 +1,3 @@
-
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -20,60 +18,5 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-nedcloud_dev}
       POSTGRES_DB: ${DB_NAME:-nedcloud}
 
-  migrate:
-    image: node:20-alpine
-    container_name: nedcloud-dev-migrate
-    env_file:
-      - .env.local
-    environment:
-      DATABASE_URL: postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    working_dir: /app
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: sh -c "npm install && npx prisma migrate deploy && npx prisma db seed"
-    profiles:
-      - migrate
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: nedcloud-dev-app
-    ports:
-      - "${APP_PORT:-3000}:3000"
-    env_file:
-      - .env.local
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - next_cache:/app/.next
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: ["sh", "-c", "mkdir -p /app/.next && chown -R 1000:1000 /app/.next && npx next dev --webpack"]
-
-  studio:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: nedcloud-dev-studio
-    ports:
-      - "${STUDIO_PORT:-5555}:5555"
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER:-nedcloud}:${DB_PASSWORD:-nedcloud_dev}@postgres:5432/${DB_NAME:-nedcloud}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: npx prisma studio --hostname 0.0.0.0 --port ${STUDIO_PORT:-5555}
-    profiles:
-      - studio
-
 volumes:
   postgres_dev_data:
-  next_cache:
