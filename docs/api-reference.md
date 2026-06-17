@@ -344,6 +344,32 @@ Delete a team member.
 
 ---
 
+## Health Check
+
+### GET /api/health
+
+Returns application and database health status.
+
+**Authentication:** None
+
+**Response (healthy):**
+```json
+{
+  "status": "healthy",
+  "checks": {
+    "database": true,
+    "timestamp": "2026-06-17T10:00:00.000Z",
+    "uptime": 12345.67,
+    "environment": "production",
+    "version": "1.0.0"
+  }
+}
+```
+
+**Response (unhealthy):** Returns status `503` when database is unreachable.
+
+---
+
 ## Contact Endpoints
 
 ### GET /api/contact

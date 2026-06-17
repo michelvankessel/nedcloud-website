@@ -16,17 +16,17 @@ This document outlines the procedure for restoring a PostgreSQL database from a 
 ---
 
 ## Environment Variables
-The restore script uses the following environment variables for database configuration:
+The scripts use the following environment variables for database connection. These correspond to the same variables in `.env.local`:
 
-| Variable | Description | Default Value |
-|----------|-------------|--------------|
-| `DB_HOST` | Database host | `postgres` |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DB_HOST` | Database host | `postgres` (Docker) / `localhost` (local) |
 | `DB_PORT` | Database port | `5432` |
 | `DB_USER` | Database username | `nedcloud` |
-| `DB_PASSWORD` | Database password | `nedcloud_dev` |
+| `DB_PASSWORD` | Database password | (from `.env.local`) |
+| `DB_NAME` | Database name | `nedcloud` |
 
-**Note:**
-For Docker environments, ensure these variables are set correctly within the container.
+**Note:** `DB_HOST` defaults to `postgres` inside Docker containers and `localhost` for local development. The application uses `DATABASE_URL` (constructed from these parts) for Prisma connections.
 
 ---
 

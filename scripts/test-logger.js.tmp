@@ -1,1 +1,0 @@
-const __dirname = __filename.split("/").slice(0, -1).join("/");

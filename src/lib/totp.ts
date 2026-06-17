@@ -67,7 +67,10 @@ export function verifyBackupCode(
 }
 
 export function encryptSecret(secret: string, key?: string): string {
-  const encryptionKey = key || process.env.NEXTAUTH_SECRET || 'default-key'
+  const encryptionKey = key || process.env.NEXTAUTH_SECRET
+  if (!encryptionKey) {
+    throw new Error('NEXTAUTH_SECRET is required for TOTP secret encryption')
+  }
   const iv = crypto.randomBytes(16)
   const derivedKey = crypto
     .createHash('sha256')
@@ -83,7 +86,10 @@ export function encryptSecret(secret: string, key?: string): string {
 }
 
 export function decryptSecret(encryptedSecret: string, key?: string): string {
-  const encryptionKey = key || process.env.NEXTAUTH_SECRET || 'default-key'
+  const encryptionKey = key || process.env.NEXTAUTH_SECRET
+  if (!encryptionKey) {
+    throw new Error('NEXTAUTH_SECRET is required for TOTP secret decryption')
+  }
   const [ivHex, encrypted] = encryptedSecret.split(':')
 
   if (!ivHex || !encrypted) {

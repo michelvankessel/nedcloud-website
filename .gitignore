@@ -50,6 +50,9 @@ src/generated/prisma/
 # Docker
 docker-compose.override.yml
 
+# Backups
+backups/
+
 # Logs
 logs/
 

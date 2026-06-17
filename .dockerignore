@@ -19,6 +19,7 @@ logs/
 
 # Project metadata
 .sisyphus/
+.omo/
 
 # Backups
 backups/

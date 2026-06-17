@@ -166,9 +166,10 @@ Verify 2FA token during login flow.
 ### Secret Storage
 
 TOTP secrets are encrypted before storage using AES-256-CBC:
-- Encryption key derived from `NEXTAUTH_SECRET`
+- Encryption key derived from `NEXTAUTH_SECRET` (via SHA-256)
 - Unique IV for each secret
 - Secrets never logged or exposed after initial setup
+- **Warning:** The code falls back to a hardcoded `'default-key'` if `NEXTAUTH_SECRET` is not set. Always set `NEXTAUTH_SECRET` in production.
 
 ### Backup Codes
 
@@ -205,8 +206,10 @@ Edit `src/lib/totp.ts` to customize:
 
 ```typescript
 const APP_NAME = 'Nedcloud Solutions'  // Shows in authenticator app
-const BACKUP_CODE_COUNT = 8            // Number of backup codes
+const BACKUP_CODE_COUNT = 8            // Number of backup codes (default)
 ```
+
+Note: otplib v13 uses the `OTP` class API (`new OTP()`) rather than the v12 `authenticator` module.
 
 ## Troubleshooting
 
@@ -234,11 +237,11 @@ If locked out with no backup codes:
 ```json
 {
   "dependencies": {
-    "otplib": "^12.0.1",
-    "qrcode": "^1.5.3"
+    "otplib": "^13.4.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
-    "@types/qrcode": "^1.5.5"
+    "@types/qrcode": "^1.5.6"
   }
 }
 ```
