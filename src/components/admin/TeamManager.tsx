@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { useState } from 'react'
@@ -141,7 +142,7 @@ export function TeamManager({ initialMembers }: { initialMembers: TeamMember[] }
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     {member.image ? (
-                      <img 
+                      <img
                         src={member.image} 
                         alt={member.name}
                         className="w-10 h-10 rounded-full object-cover"

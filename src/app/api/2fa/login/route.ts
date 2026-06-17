@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyTOTP, verifyBackupCode, decryptSecret } from '@/lib/totp'
-import { signIn } from '@/lib/auth'
 import { rateLimit } from '@/lib/rateLimit'
 
 const authRateLimit = rateLimit('auth')

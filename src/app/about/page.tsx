@@ -31,7 +31,7 @@ export default function AboutPage() {
                     Cisco Infrastructure Essentials. TOGAF and CompTIA Security+ certified.
                   </p>
                   <p className="text-gray-300 text-lg leading-relaxed mt-4">
-                    That foundation taught me how complex systems break, scale, and evolve. Now I'm applying that expertise to the next paradigm shift: <strong className="text-white">Agentic AI for infrastructure and full-stack platforms</strong>.
+                    That foundation taught me how complex systems break, scale, and evolve. Now I&apos;m applying that expertise to the next paradigm shift: <strong className="text-white">Agentic AI for infrastructure and full-stack platforms</strong>.
                   </p>
                 </div>
 
@@ -64,7 +64,7 @@ export default function AboutPage() {
                 <h2 className="text-2xl font-bold text-white mt-12 mb-6">The Transformation</h2>
                 <div className="glass-card p-6 mb-6">
                   <p className="text-gray-300 mb-4">
-                    Agentic AI is reshaping infrastructure operations. Moving from "tools that assist" to "agents that execute." I'm building production systems where AI agents autonomously:
+                    Agentic AI is reshaping infrastructure operations. Moving from &ldquo;tools that assist&rdquo; to &ldquo;agents that execute.&rdquo; I&apos;m building production systems where AI agents autonomously:
                   </p>
                   <ul className="space-y-3 text-gray-300">
                     <li className="flex items-start">
@@ -85,7 +85,7 @@ export default function AboutPage() {
                     </li>
                   </ul>
                   <p className="text-gray-300 mt-4">
-                    I'm not just deploying AI. I'm designing agentic infrastructure platforms where AI agents become operational assets, enabling teams to focus on strategic work.
+                    I&apos;m not just deploying AI. I&apos;m designing agentic infrastructure platforms where AI agents become operational assets, enabling teams to focus on strategic work.
                   </p>
                 </div>
 
@@ -112,7 +112,7 @@ export default function AboutPage() {
                 <h2 className="text-2xl font-bold text-white mt-12 mb-6">What This Means for Organizations</h2>
                 <div className="glass-card p-6">
                   <p className="text-gray-300 leading-relaxed">
-                    AI agents will reshape teams, with enterprises rapidly reducing human-in-the-loop involvement as agent autonomy increases. Infrastructure isn't just "being automated", it's becoming self-aware. Teams need people who understand both traditional infrastructure and how to build governance, orchestration, and security frameworks around autonomous AI agents.
+                    AI agents will reshape teams, with enterprises rapidly reducing human-in-the-loop involvement as agent autonomy increases. Infrastructure isn&apos;t just &ldquo;being automated&rdquo;, it&apos;s becoming self-aware. Teams need people who understand both traditional infrastructure and how to build governance, orchestration, and security frameworks around autonomous AI agents.
                   </p>
                   <p className="text-gray-300 leading-relaxed mt-4">
                     Because of my background as Lead Technical Consultant and Senior Engineer, I bridge strategy and execution. I partner with teams to define and troubleshoot issues, architect solutions, and lead implementations into production.

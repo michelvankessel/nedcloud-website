@@ -15,7 +15,7 @@ export async function GET(
     }
     
     return NextResponse.json(member)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch team member' }, { status: 500 })
   }
 }
@@ -69,7 +69,7 @@ export async function PUT(
       200
     )
     return NextResponse.json(member)
-  } catch (error) {
+  } catch {
     logAPIRequest(
       getClientIp(request),
       request.headers.get('user-agent') || 'unknown',
@@ -104,7 +104,7 @@ export async function DELETE(
     )
     await prisma.teamMember.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     logAPIRequest(
       getClientIp(request),
       request.headers.get('user-agent') || 'unknown',

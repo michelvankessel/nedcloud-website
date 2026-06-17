@@ -341,6 +341,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
               
               {qrCode && (
                 <div className="bg-white p-4 rounded-lg inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- QR code is a dynamic data URL */}
                   <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
                 </div>
               )}

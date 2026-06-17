@@ -18,7 +18,7 @@ export async function GET(
     }
     
     return NextResponse.json(project)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 })
   }
 }
@@ -74,7 +74,7 @@ export async function PUT(
       200
     )
     return NextResponse.json(project)
-  } catch (error) {
+  } catch {
     logAPIRequest(
       getClientIp(request),
       request.headers.get('user-agent') || 'unknown',
@@ -109,7 +109,7 @@ export async function DELETE(
     )
     await prisma.project.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     logAPIRequest(
       getClientIp(request),
       request.headers.get('user-agent') || 'unknown',

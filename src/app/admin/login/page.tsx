@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Mail, Lock, AlertCircle, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -11,7 +11,6 @@ export const dynamic = 'force-dynamic'
 
 function AdminLoginContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [show2FA, setShow2FA] = useState(false)

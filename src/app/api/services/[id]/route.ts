@@ -17,7 +17,7 @@ export async function GET(
     }
     
     return NextResponse.json(service)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch service' },
       { status: 500 }
@@ -54,7 +54,7 @@ export async function PUT(
     })
     
     return NextResponse.json(service)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update service' },
       { status: 500 }
@@ -79,7 +79,7 @@ export async function DELETE(
     })
     
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to delete service' },
       { status: 500 }
