@@ -267,8 +267,7 @@ test.describe('WebAuthn Registration and Authentication', () => {
     await page.waitForURL(/.*\/admin$/, { timeout: WEBAUTHN_TIMEOUT });
 
     // Verify we're logged in by checking for admin-specific content
-    const adminContent = page.locator('text=/Dashboard/i, text=/Settings/i, h1');
-    await expect(adminContent.first()).toBeVisible({ timeout: WEBAUTHN_TIMEOUT });
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: WEBAUTHN_TIMEOUT });
 
     console.log('WebAuthn login successful');
   }
