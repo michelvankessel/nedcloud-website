@@ -7,14 +7,8 @@ import {
   hashBackupCodes,
   decryptSecret
 } from '@/lib/totp'
-import { rateLimit } from '@/lib/rateLimit'
-
-const authRateLimit = rateLimit('auth')
 
 export async function POST(request: NextRequest) {
-  const limitedResponse = await authRateLimit(request)
-  if (limitedResponse) return limitedResponse
-
   const session = await auth()
 
   if (!session?.user?.id) {

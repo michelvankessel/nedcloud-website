@@ -26,14 +26,15 @@ model User {
    twoFactorBackupCodes String[]                     // SHA-256 hashed backup codes
    twoFactorVerifiedAt DateTime?                     // When 2FA was enabled
    
-   // Relations
-   accounts      Account[]
-   sessions      Session[]
-   posts         Post[]
-   projects      Project[]
-   testimonials  Testimonial[]
+    // Relations
+    accounts      Account[]
+    sessions      Session[]
+    posts         Post[]
+    projects      Project[]
+    testimonials  Testimonial[]
+    webAuthnCredentials WebAuthnCredential[]
 
-   @@map("users")
+    @@map("users")
 }
 
 /// User roles for access control.
@@ -207,6 +208,44 @@ model Page {
    updatedAt   DateTime @updatedAt
 
    @@map("pages")
+}
+
+/// WebAuthn credentials for passwordless / second-factor authentication.
+/// - Each credential belongs to one user
+/// - credentialId is the raw Base64URL credential ID from the authenticator
+/// - publicKey is the COSE-encoded public key bytes
+model WebAuthnCredential {
+   id            String   @id @default(cuid())
+   userId        String
+   credentialId String   @unique
+   publicKey     Bytes
+   counter       Int      @default(0)
+   transports    String[] @default([])
+   deviceType    String?
+   backedUp     Boolean?
+   aaguid       String?
+   name         String?
+   createdAt    DateTime @default(now())
+   updatedAt    DateTime @updatedAt
+   lastUsedAt   DateTime?
+   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@map("webauthn_credentials")
+}
+
+/// WebAuthn challenges for registration and authentication ceremonies.
+/// - Server-side, single-use, TTL enforced via expiresAt
+/// - purpose distinguishes registration vs authentication
+model WebAuthnChallenge {
+   id        String   @id @default(cuid())
+   userId    String?
+   challenge String
+   purpose   String
+   expiresAt DateTime
+   usedAt    DateTime?
+   createdAt DateTime @default(now())
+
+   @@map("webauthn_challenges")
 }
 
 /// Contact form submissions.

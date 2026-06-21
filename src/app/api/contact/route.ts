@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { auth, requireRole } from '@/lib/auth'
 import { validate, contactSubmissionSchema } from '@/lib/validations'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAPIRequest, logFormSubmission } from '@/lib/security-logger'
 
 const apiRateLimit = rateLimit('api')
+const MIN_FORM_TIME_MS = 2000
 
 function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')
@@ -21,8 +22,23 @@ export async function GET(request: NextRequest) {
 
   const session = await auth()
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'GET',
+      '/api/contact',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
   try {
@@ -35,7 +51,7 @@ export async function GET(request: NextRequest) {
       request.headers.get('user-agent') || 'unknown',
       'GET',
       '/api/contact',
-      session.user.id,
+      checkedSession.user.id,
       200
     )
 
@@ -45,6 +61,14 @@ export async function GET(request: NextRequest) {
     response.headers.set('Expires', '0')
     return response
   } catch {
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'GET',
+      '/api/contact',
+      checkedSession.user.id,
+      500
+    )
     return NextResponse.json(
       { error: 'Failed to fetch contacts' },
       { status: 500 }
@@ -64,6 +88,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Validation failed', details: validation.errors }, { status: 400 })
     }
 
+    // Honeypot check: if hidden field is filled, it's a bot
+    if (validation.data._hp) {
+      logFormSubmission(
+        getClientIp(request),
+        request.headers.get('user-agent') || 'unknown',
+        'Contact Form (honeypot)',
+        { name: validation.data.name, email: validation.data.email }
+      )
+      return NextResponse.json({ success: true }, { status: 201 })
+    }
+
+    // Timing check: if form submitted too fast, it's likely a bot
+    if (validation.data._ts) {
+      const formLoadTime = parseInt(validation.data._ts, 10)
+      if (!isNaN(formLoadTime) && Date.now() - formLoadTime < MIN_FORM_TIME_MS) {
+        logFormSubmission(
+          getClientIp(request),
+          request.headers.get('user-agent') || 'unknown',
+          'Contact Form (timing)',
+          { name: validation.data.name, email: validation.data.email }
+        )
+        return NextResponse.json({ success: true }, { status: 201 })
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _hp, _ts, ...contactData } = validation.data
+
     logFormSubmission(
       getClientIp(request),
       request.headers.get('user-agent') || 'unknown',
@@ -72,7 +124,7 @@ export async function POST(request: NextRequest) {
     )
 
     const contact = await prisma.contactSubmission.create({
-      data: validation.data,
+      data: contactData,
     })
 
     logAPIRequest(

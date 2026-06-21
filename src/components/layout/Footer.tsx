@@ -93,7 +93,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-12 pt-8 border-t border-dark-700/50 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-sm" suppressHydrationWarning>
             &copy; {new Date().getFullYear()} Nedcloud Solutions. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-gray-500">

@@ -79,6 +79,8 @@ export const contactSubmissionSchema = z.object({
   company: z.string().max(v.nameMaxLength).optional(),
   subject: z.string().max(v.titleMaxLength).optional(),
   message: z.string().min(1, 'Message is required').max(v.contentMaxLength),
+  _hp: z.string().optional(),
+  _ts: z.string().optional(),
 })
 
 export const contactStatusSchema = z.object({

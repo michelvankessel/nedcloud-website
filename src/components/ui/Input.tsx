@@ -10,6 +10,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, className, ...props }, ref) => {
+    const hasError = !!error;
     return (
       <div className="w-full">
         {label && (
@@ -24,12 +25,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             'text-gray-100 placeholder:text-gray-500',
             'focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50',
             'transition-all duration-200',
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/50',
+            hasError && 'border-red-500 focus:border-red-500 focus:ring-red-500/50',
             className
           )}
           {...props}
         />
-        {error && (
+        {hasError && (
           <p className="mt-1 text-sm text-red-500">{error}</p>
         )}
       </div>

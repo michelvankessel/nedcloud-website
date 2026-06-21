@@ -1,32 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { auth, requireRole } from '@/lib/auth'
 import { validate, contactStatusSchema } from '@/lib/validations'
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth()
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  try {
-    const { id } = await params
-    const contact = await prisma.contactSubmission.findUnique({ where: { id } })
-    
-    if (!contact) {
-      return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
-    }
-    
-    return NextResponse.json(contact)
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch contact' }, { status: 500 })
-  }
-}
-
 import { logAPIRequest } from '@/lib/security-logger'
 
 function getClientIp(request: NextRequest): string {
@@ -37,14 +12,84 @@ function getClientIp(request: NextRequest): string {
   return 'unknown'
 }
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'GET',
+      '/api/contact/[id]',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
+  }
+
+  try {
+    const { id } = await params
+    const contact = await prisma.contactSubmission.findUnique({ where: { id } })
+    
+    if (!contact) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
+    }
+    
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'GET',
+      '/api/contact/[id]',
+      checkedSession.user.id,
+      200
+    )
+    return NextResponse.json(contact)
+  } catch {
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'GET',
+      '/api/contact/[id]',
+      checkedSession.user.id,
+      500
+    )
+    return NextResponse.json({ error: 'Failed to fetch contact' }, { status: 500 })
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'PATCH',
+      '/api/contact/[id]',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
    try {
@@ -66,7 +111,7 @@ export async function PATCH(
       request.headers.get('user-agent') || 'unknown',
       'PATCH',
       '/api/contact/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       200
     )
     return NextResponse.json(contact)
@@ -76,7 +121,7 @@ export async function PATCH(
       request.headers.get('user-agent') || 'unknown',
       'PATCH',
       '/api/contact/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       500
     )
     return NextResponse.json({ error: 'Failed to update contact' }, { status: 500 })
@@ -89,8 +134,23 @@ export async function DELETE(
 ) {
   const session = await auth()
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'DELETE',
+      '/api/contact/[id]',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
   try {
@@ -100,7 +160,7 @@ export async function DELETE(
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/contact/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       200
     )
     await prisma.contactSubmission.delete({ where: { id } })
@@ -111,7 +171,7 @@ export async function DELETE(
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/contact/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       500
     )
     return NextResponse.json({ error: 'Failed to delete contact' }, { status: 500 })

@@ -1,6 +1,13 @@
 import { redirect } from 'next/navigation'
+import { JetBrains_Mono } from 'next/font/google'
 import { auth } from '@/lib/auth'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains',
+  subsets: ['latin'],
+  weight: ['400', '500'],
+})
 
 export default async function AdminLayout({
   children,
@@ -14,7 +21,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-dark-950">
+    <div className={`${jetbrainsMono.variable} flex min-h-screen bg-dark-950`}>
       <AdminSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-8">

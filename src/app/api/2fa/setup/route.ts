@@ -2,14 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateTOTPSecret, generateQRCodeDataURL, encryptSecret } from '@/lib/totp'
-import { rateLimit } from '@/lib/rateLimit'
 
-const authRateLimit = rateLimit('auth')
-
-export async function POST(request: NextRequest) {
-  const limitedResponse = await authRateLimit(request)
-  if (limitedResponse) return limitedResponse
-
+export async function POST(_request: NextRequest) { // eslint-disable-line @typescript-eslint/no-unused-vars
   const session = await auth()
 
   if (!session?.user?.id) {

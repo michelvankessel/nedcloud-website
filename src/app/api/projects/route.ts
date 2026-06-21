@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { auth, requireRole } from '@/lib/auth'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAPIRequest } from '@/lib/security-logger'
 
@@ -61,20 +61,27 @@ export async function POST(request: NextRequest) {
 
   const session = await auth()
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN', 'EDITOR'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'POST',
+      '/api/projects',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
   try {
     const body = await request.json()
-
-    const adminUser = await prisma.user.findFirst({
-      where: { role: 'ADMIN' },
-    })
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'No admin user found' }, { status: 500 })
-    }
 
     const project = await prisma.project.create({
       data: {
@@ -90,7 +97,7 @@ export async function POST(request: NextRequest) {
         published: body.published || false,
         startDate: body.startDate ? new Date(body.startDate) : null,
         endDate: body.endDate ? new Date(body.endDate) : null,
-        authorId: adminUser.id,
+        authorId: checkedSession.user.id,
         serviceId: body.serviceId,
       },
     })
@@ -100,12 +107,20 @@ export async function POST(request: NextRequest) {
       request.headers.get('user-agent') || 'unknown',
       'POST',
       '/api/projects',
-      session.user.id,
+      checkedSession.user.id,
       201
     )
 
     return NextResponse.json(project, { status: 201 })
   } catch {
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'POST',
+      '/api/projects',
+      checkedSession.user.id,
+      500
+    )
     return NextResponse.json(
       { error: 'Failed to create project' },
       { status: 500 }

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { auth, requireRole } from '@/lib/auth'
+import { logAPIRequest } from '@/lib/security-logger'
+
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  const realIp = request.headers.get('x-real-ip')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  if (realIp) return realIp
+  return 'unknown'
+}
 
 export async function GET(
   request: NextRequest,
@@ -23,24 +32,29 @@ export async function GET(
   }
 }
 
-import { logAPIRequest } from '@/lib/security-logger'
-
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for')
-  const realIp = request.headers.get('x-real-ip')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  if (realIp) return realIp
-  return 'unknown'
-}
-
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN', 'EDITOR'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'PUT',
+      '/api/blog/[id]',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
    try {
@@ -67,7 +81,7 @@ export async function PUT(
       request.headers.get('user-agent') || 'unknown',
       'PUT',
       '/api/blog/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       200
     )
     return NextResponse.json(post)
@@ -77,7 +91,7 @@ export async function PUT(
       request.headers.get('user-agent') || 'unknown',
       'PUT',
       '/api/blog/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       500
     )
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 })
@@ -90,8 +104,23 @@ export async function DELETE(
 ) {
   const session = await auth()
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN', 'EDITOR'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'DELETE',
+      '/api/blog/[id]',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
   try {
@@ -101,7 +130,7 @@ export async function DELETE(
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/blog/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       200
     )
     await prisma.post.delete({ where: { id } })
@@ -112,7 +141,7 @@ export async function DELETE(
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/blog/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       500
     )
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 })

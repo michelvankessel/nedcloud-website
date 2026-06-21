@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { auth, requireRole } from '@/lib/auth'
 import { logAPIRequest } from '@/lib/security-logger'
 
 function getClientIp(request: NextRequest): string {
@@ -34,9 +34,24 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN', 'EDITOR'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'PUT',
+      '/api/testimonials/[id]',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
   try {
@@ -62,7 +77,7 @@ export async function PUT(
       request.headers.get('user-agent') || 'unknown',
       'PUT',
       '/api/testimonials/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       200
     )
 
@@ -73,7 +88,7 @@ export async function PUT(
       request.headers.get('user-agent') || 'unknown',
       'PUT',
       '/api/testimonials/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       500
     )
     return NextResponse.json({ error: 'Failed to update testimonial' }, { status: 500 })
@@ -86,22 +101,36 @@ export async function DELETE(
 ) {
   const session = await auth()
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+  let checkedSession
   try {
-    const { id } = await params
-    await prisma.testimonial.delete({ where: { id } })
-    
+    checkedSession = requireRole(session, ['ADMIN', 'EDITOR'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
     logAPIRequest(
       getClientIp(request),
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/testimonials/[id]',
       session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
+  }
+
+  try {
+    const { id } = await params
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'DELETE',
+      '/api/testimonials/[id]',
+      checkedSession.user.id,
       200
     )
+    await prisma.testimonial.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch {
     logAPIRequest(
@@ -109,7 +138,7 @@ export async function DELETE(
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/testimonials/[id]',
-      session?.user?.id,
+      checkedSession.user.id,
       500
     )
     return NextResponse.json({ error: 'Failed to delete testimonial' }, { status: 500 })

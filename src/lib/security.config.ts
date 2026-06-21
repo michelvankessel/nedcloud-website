@@ -30,6 +30,12 @@ export const securityConfig = {
   session: {
     passwordHashRounds: 12,
   },
+
+  lockout: {
+    maxAttempts: 5,
+    windowMs: 15 * 60 * 1000,
+    lockoutMs: 30 * 60 * 1000,
+  },
 } as const
 
 export type SecurityConfig = typeof securityConfig

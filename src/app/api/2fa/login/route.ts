@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyTOTP, verifyBackupCode, decryptSecret } from '@/lib/totp'
-import { rateLimit } from '@/lib/rateLimit'
-
-const authRateLimit = rateLimit('auth')
 
 export async function POST(request: NextRequest) {
-  const limitedResponse = await authRateLimit(request)
-  if (limitedResponse) return limitedResponse
-
   try {
     const body = await request.json()
     const { email, token } = body

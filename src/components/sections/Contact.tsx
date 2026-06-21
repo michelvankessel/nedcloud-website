@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, User, Building, Send } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -10,6 +10,7 @@ export const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const formTimestampRef = useRef(Date.now())
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -25,6 +26,8 @@ export const Contact = () => {
       company: formData.get('company') as string || undefined,
       subject: formData.get('subject') as string || undefined,
       message: formData.get('message') as string,
+      _hp: formData.get('_hp') as string || undefined,
+      _ts: formData.get('_ts') as string || undefined,
     }
     
     try {
@@ -113,6 +116,7 @@ export const Contact = () => {
                       placeholder="Your Name"
                       required
                       className="pl-10"
+                      autoComplete="name"
                     />
                   </div>
                   <div className="relative">
@@ -123,6 +127,7 @@ export const Contact = () => {
                       placeholder="Email Address"
                       required
                       className="pl-10"
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -132,6 +137,7 @@ export const Contact = () => {
                     name="company"
                     placeholder="Company (optional)"
                     className="pl-10"
+                    autoComplete="organization"
                   />
                 </div>
                 <div>
@@ -140,7 +146,23 @@ export const Contact = () => {
                     placeholder="Tell me about your project..."
                     required
                     rows={5}
+                    autoComplete="off"
                     className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600 rounded-lg text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition-all resize-none"
+                  />
+                </div>
+                <div aria-hidden="true" className="absolute left-[-9999px] top-[-9999px]">
+                  <label htmlFor="_hp">Website</label>
+                  <input
+                    type="text"
+                    id="_hp"
+                    name="_hp"
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+<input
+  type="hidden"
+  name="_ts"
+  value={formTimestampRef.current}
                   />
                 </div>
                 <Button

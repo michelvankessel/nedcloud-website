@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { auth, requireRole } from '@/lib/auth'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAPIRequest } from '@/lib/security-logger'
 
@@ -61,8 +61,23 @@ export async function POST(request: NextRequest) {
 
   const session = await auth()
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  let checkedSession
+  try {
+    checkedSession = requireRole(session, ['ADMIN', 'EDITOR'])
+  } catch (error) {
+    const status = error instanceof Error && error.message === 'Forbidden: insufficient role' ? 403 : 401
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'POST',
+      '/api/testimonials',
+      session?.user?.id,
+      status
+    )
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unauthorized' },
+      { status }
+    )
   }
 
   try {
@@ -85,12 +100,20 @@ export async function POST(request: NextRequest) {
       request.headers.get('user-agent') || 'unknown',
       'POST',
       '/api/testimonials',
-      session.user.id,
+      checkedSession.user.id,
       201
     )
 
     return NextResponse.json(testimonial, { status: 201 })
   } catch {
+    logAPIRequest(
+      getClientIp(request),
+      request.headers.get('user-agent') || 'unknown',
+      'POST',
+      '/api/testimonials',
+      checkedSession.user.id,
+      500
+    )
     return NextResponse.json(
       { error: 'Failed to create testimonial' },
       { status: 500 }

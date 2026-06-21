@@ -200,6 +200,14 @@ Ensure `NEXTAUTH_SECRET` is set for secret encryption:
 NEXTAUTH_SECRET="your-32-character-secret"
 ```
 
+If you enable WebAuthn, also set the relying party variables:
+
+```bash
+WEBAUTHN_RP_ID=localhost
+WEBAUTHN_RP_NAME="Nedcloud Solutions Admin"
+WEBAUTHN_ORIGIN=http://localhost:3000
+```
+
 ### Customization
 
 Edit `src/lib/totp.ts` to customize:
@@ -210,6 +218,57 @@ const BACKUP_CODE_COUNT = 8            // Number of backup codes (default)
 ```
 
 Note: otplib v13 uses the `OTP` class API (`new OTP()`) rather than the v12 `authenticator` module.
+
+## WebAuthn / Security Keys
+
+WebAuthn is an alternative second factor to TOTP, not a replacement. Both ADMIN and EDITOR users can register their own security keys and use any registered key instead of a TOTP code after entering their password.
+
+### Supported authenticators
+
+- FIDO2 hardware security keys, such as YubiKey 5 series
+- Platform authenticators, such as Touch ID and Windows Hello, registered as secondary discoverable credentials
+- Any authenticator that works with the browser's WebAuthn APIs
+
+### Environment variables
+
+| Variable | Example (dev) | Example (production) | Purpose |
+|---|---|---|---|
+| `WEBAUTHN_RP_ID` | `localhost` | `admin.nedcloud.com` | Relying Party identifier; must match the domain the browser sees |
+| `WEBAUTHN_RP_NAME` | `Nedcloud Solutions Admin` | `Nedcloud Solutions Admin` | Human-readable site name shown during registration |
+| `WEBAUTHN_ORIGIN` | `http://localhost:3000` | `https://admin.nedcloud.com` | Origin the browser uses to validate the ceremony |
+
+Dev values are already in `.env.local.example`.
+
+### Registration flow
+
+1. Sign in and go to `/admin/settings`.
+2. Scroll to the Security Keys (WebAuthn) section and click Add Security Key.
+3. The browser prompts you to touch the key, scan your fingerprint, or confirm Windows Hello.
+4. After the ceremony finishes, enter a friendly name for the key, such as "YubiKey 5C", and save it.
+5. The key appears in the list with its name, device type, transports, and last used date.
+
+You can register multiple keys. The first time you add a security key without TOTP enabled, the settings page warns you to enable TOTP or add a second key.
+
+### Authentication flow
+
+1. Enter your email and password on `/admin/login`.
+2. When the account has a second factor enabled, the app redirects to `/admin/verify-2fa?email=...`.
+3. Click Use Security Key instead of entering a TOTP code.
+4. The browser prompts for the registered key.
+5. After verification, the app calls `signIn('credentials-webauthn', ...)` and starts your admin session.
+
+The TOTP code input remains available on the same page, so either second factor works.
+
+### Recovery
+
+Backup codes remain the recovery method. Store them securely when you first enable TOTP, or any time you regenerate them. If you lose your only security key and have no backup codes, you will be locked out and will need direct database access to reset 2FA.
+
+### WebAuthn troubleshooting
+
+- HTTPS in production: Browsers require a secure origin for WebAuthn outside localhost. Use HTTPS in production and make sure `WEBAUTHN_ORIGIN` starts with `https://`.
+- Origin mismatch: If `WEBAUTHN_RP_ID` or `WEBAUTHN_ORIGIN` does not match the URL in the browser, registration or authentication fails with a security error.
+- Browser support: Use a modern browser with WebAuthn support. Some older browsers or strict privacy modes block the API.
+- Virtual authenticators for testing: Use Playwright or Chrome DevTools Protocol virtual authenticators in automated tests and local debugging. Real hardware is not required to verify the implementation.
 
 ## Troubleshooting
 
@@ -237,6 +296,9 @@ If locked out with no backup codes:
 ```json
 {
   "dependencies": {
+    "@simplewebauthn/browser": "^9.0.1",
+    "@simplewebauthn/server": "^9.0.2",
+    "@simplewebauthn/types": "^9.0.1",
     "otplib": "^13.4.0",
     "qrcode": "^1.5.4"
   },

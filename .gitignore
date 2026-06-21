@@ -56,6 +56,10 @@ backups/
 # Logs
 logs/
 
+# Playwright
+test-results/
+playwright-report/
+
 # Sisyphus Agent
 .sisyphus/
 .omo/

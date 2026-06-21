@@ -21,12 +21,20 @@ export const Testimonials = () => {
 
   useEffect(() => {
     fetch('/api/testimonials', { cache: 'no-store' })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
       .then(data => {
-        setTestimonials(data)
+        if (Array.isArray(data)) {
+          setTestimonials(data)
+        }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => {
+        setTestimonials([])
+        setLoading(false)
+      })
   }, [])
 
   if (loading) {
