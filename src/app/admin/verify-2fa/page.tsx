@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+	import { Suspense, useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { AlertCircle, Shield, Fingerprint } from 'lucide-react'
@@ -20,12 +20,41 @@ function Verify2FAContent() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isWebAuthnLoading, setIsWebAuthnLoading] = useState(false)
+  const [hasTotp, setHasTotp] = useState(false)
+  const [hasCredentials, setHasCredentials] = useState(false)
+  const [methodsLoaded, setMethodsLoaded] = useState(false)
+  const isWebAuthnInProgress = useRef(false)
 
   useEffect(() => {
-    if (!email) {
-      router.push('/admin/login')
-    }
+    // Defer redirect so searchParams have time to stabilize
+    // during client-side navigation from the login page.
+    const id = setTimeout(() => {
+      if (!email) {
+        router.push('/admin/login')
+      }
+    })
+    return () => clearTimeout(id)
   }, [email, router])
+
+  // Check available 2FA methods on mount
+  useEffect(() => {
+    if (!email) return
+
+    fetch('/api/webauthn/authenticate/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setHasTotp(data.hasTotp ?? false)
+        setHasCredentials(data.hasCredentials ?? false)
+        setMethodsLoaded(true)
+      })
+      .catch(() => {
+        setMethodsLoaded(true)
+      })
+  }, [email])
 
   async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -77,6 +106,10 @@ function Verify2FAContent() {
   }
 
   async function handleWebAuthn() {
+    // Guard against double-click / React strict mode re-invocation
+    if (isWebAuthnInProgress.current) return
+    isWebAuthnInProgress.current = true
+
     if (!email) {
       setError('Missing email. Please start from the login page.')
       return
@@ -97,7 +130,15 @@ function Verify2FAContent() {
         throw new Error('Failed to start security key authentication')
       }
 
-      const { options } = await startResponse.json() as { options: unknown }
+      const { options, hasCredentials } = await startResponse.json() as {
+        options: unknown
+        hasCredentials: boolean
+      }
+
+      if (!hasCredentials || !options) {
+        setError('No security keys registered. Register one in Settings first.')
+        return
+      }
 
       // Step 2: Trigger browser WebAuthn flow
       let authResponse: AuthenticationResponseJSON
@@ -150,6 +191,7 @@ function Verify2FAContent() {
       setError('Security key authentication failed. Please try again.')
     } finally {
       setIsWebAuthnLoading(false)
+      isWebAuthnInProgress.current = false
     }
   }
 
@@ -161,6 +203,26 @@ function Verify2FAContent() {
     )
   }
 
+  if (!methodsLoaded) {
+    return (
+      <div className="min-h-screen bg-dark-950 mesh-background flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
+  const showTotp = hasTotp
+  const showWebAuthn = hasCredentials
+
+  let description: string
+  if (showTotp && showWebAuthn) {
+    description = 'Choose your authentication method'
+  } else if (showWebAuthn) {
+    description = 'Use your security key to authenticate'
+  } else {
+    description = 'Enter the 6-digit code from your authenticator app'
+  }
+
   return (
     <div className="min-h-screen bg-dark-950 mesh-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -169,10 +231,10 @@ function Verify2FAContent() {
             <Shield className="w-8 h-8 text-neon-blue" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Two-Factor Authentication</h1>
-          <p className="text-gray-400">Enter the code from your authenticator app</p>
+          <p className="text-gray-400">{description}</p>
         </div>
 
-        <form onSubmit={handleVerify} className="glass-card p-8">
+        <div className="glass-card p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3 text-red-400">
               <AlertCircle size={20} />
@@ -181,36 +243,54 @@ function Verify2FAContent() {
           )}
 
           <div className="space-y-4">
-            <Input
-              type="text"
-              value={token}
-              onChange={(e) => setToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="000000"
-              className="text-center text-2xl tracking-widest"
-              maxLength={6}
-              autoFocus
-              autoComplete="one-time-code"
-            />
+            {showTotp && (
+              <form onSubmit={handleVerify}>
+                <div className="space-y-4">
+                  <Input
+                    type="text"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className="text-center text-2xl tracking-widest"
+                    maxLength={6}
+                    autoFocus={showTotp}
+                  />
 
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full"
-              isLoading={isLoading}
-            >
-              Verify
-            </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="w-full"
+                    isLoading={isLoading}
+                  >
+                    Verify
+                  </Button>
+                </div>
+              </form>
+            )}
 
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              isLoading={isWebAuthnLoading}
-              onClick={handleWebAuthn}
-              iconLeft={<Fingerprint className="w-5 h-5" />}
-            >
-              Use Security Key
-            </Button>
+            {showTotp && showWebAuthn && (
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-dark-700" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-dark-800/50 px-2 text-gray-500">or</span>
+                </div>
+              </div>
+            )}
+
+            {showWebAuthn && (
+              <Button
+                type="button"
+                variant={showTotp ? 'secondary' : 'primary'}
+                className="w-full"
+                isLoading={isWebAuthnLoading}
+                onClick={handleWebAuthn}
+                iconLeft={<Fingerprint className="w-5 h-5" />}
+              >
+                Use Security Key
+              </Button>
+            )}
 
             <button
               type="button"
@@ -220,7 +300,7 @@ function Verify2FAContent() {
               Use a different account
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

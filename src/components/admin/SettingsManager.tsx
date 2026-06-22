@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Key, User, Save, Shield, ShieldCheck, ShieldOff, Copy, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -28,6 +28,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [hasTotp, setHasTotp] = useState(false)
   const [showSetup, setShowSetup] = useState(false)
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [secret, setSecret] = useState<string | null>(null)
@@ -38,6 +39,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
 
   const [credentials, setCredentials] = useState<WebAuthnCredential[]>([])
   const [isRegistering, setIsRegistering] = useState(false)
+  const isRegisteringRef = useRef(false)
   const [deletingCredentialId, setDeletingCredentialId] = useState<string | null>(null)
   const [newCredentialId, setNewCredentialId] = useState<string | null>(null)
   const [newCredentialName, setNewCredentialName] = useState('')
@@ -47,6 +49,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
       .then(res => res.json())
       .then(data => {
         setTwoFactorEnabled(data.enabled)
+        setHasTotp(data.hasTotp)
       })
       .catch(console.error)
   }, [])
@@ -113,6 +116,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
       if (response.ok) {
         setBackupCodes(data.backupCodes)
         setTwoFactorEnabled(true)
+        setHasTotp(true)
         setShowSetup(false)
         setMessage({ type: 'success', text: '2FA enabled successfully! Save your backup codes.' })
       } else {
@@ -250,8 +254,12 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
   }
 
   const handleAddSecurityKey = async () => {
+    if (isRegisteringRef.current) return
+    isRegisteringRef.current = true
+
     if (typeof window === 'undefined' || typeof window.PublicKeyCredential === 'undefined' || typeof navigator.credentials?.create !== 'function') {
       setMessage({ type: 'error', text: 'This browser does not support WebAuthn security-key registration.' })
+      isRegisteringRef.current = false
       return
     }
 
@@ -268,6 +276,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
         const errorData = await startResponse.json()
         setMessage({ type: 'error', text: errorData.error || 'Failed to start registration' })
         setIsRegistering(false)
+        isRegisteringRef.current = false
         return
       }
 
@@ -279,6 +288,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
       } catch (error) {
         setMessage({ type: 'error', text: getWebAuthnErrorMessage(error) })
         setIsRegistering(false)
+        isRegisteringRef.current = false
         return
       }
 
@@ -305,6 +315,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
       setMessage({ type: 'error', text: getWebAuthnErrorMessage(error) })
     } finally {
       setIsRegistering(false)
+      isRegisteringRef.current = false
     }
   }
 
@@ -462,7 +473,7 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
         </h2>
 
         <div className="space-y-4 max-w-md">
-          {twoFactorEnabled ? (
+          {twoFactorEnabled && hasTotp ? (
             <>
               <p className="text-neon-green flex items-center gap-2">
                 <ShieldCheck size={18} />
@@ -512,6 +523,20 @@ export function SettingsManager({ initialUser }: { initialUser: { name: string |
                   </Button>
                 </div>
               </div>
+            </>
+          ) : twoFactorEnabled && !hasTotp ? (
+            <>
+              <p className="text-neon-green flex items-center gap-2">
+                <ShieldCheck size={18} />
+                2FA is enabled via security keys
+              </p>
+              <p className="text-gray-400 text-sm">
+                You can authenticate with your registered security key at login. Set up TOTP as a backup, or remove all security keys below to disable 2FA.
+              </p>
+              <Button variant="primary" onClick={handleStart2FASetup} isLoading={isSaving}>
+                <Shield size={16} className="mr-2" />
+                Set Up Authenticator App
+              </Button>
             </>
           ) : showSetup ? (
             <div className="space-y-4">

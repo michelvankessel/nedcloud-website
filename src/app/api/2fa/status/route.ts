@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       where: { id: session.user.id },
       select: {
         twoFactorEnabled: true,
+        twoFactorSecret: true,
         twoFactorVerifiedAt: true
       }
     })
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       enabled: user.twoFactorEnabled,
+      hasTotp: user.twoFactorSecret !== null,
       verifiedAt: user.twoFactorVerifiedAt
     })
   } catch (error) {

@@ -4,7 +4,7 @@ import { generateAuthenticationOptions, getWebAuthnConfig } from '@/lib/webauthn
 import { createChallenge } from '@/lib/webauthn-challenge'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAPIRequest } from '@/lib/security-logger'
-import type { AuthenticatorTransportFuture } from '@simplewebauthn/types'
+import type { AuthenticatorTransportFuture, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types'
 
 const apiRateLimit = rateLimit('api')
 
@@ -35,12 +35,15 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true }
+      select: { id: true, twoFactorSecret: true }
     })
 
     getWebAuthnConfig()
 
-    let options
+    const hasTotp = user?.twoFactorSecret !== null
+
+    let options: PublicKeyCredentialRequestOptionsJSON | null = null
+    let hasCredentials = false
 
     if (user) {
       const credentials = await prisma.webAuthnCredential.findMany({
@@ -54,6 +57,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (credentials.length > 0) {
+        hasCredentials = true
         const challengeResult = await createChallenge({
           userId: user.id,
           purpose: 'authentication',
@@ -71,26 +75,12 @@ export async function POST(request: NextRequest) {
               : undefined
           }))
         )
-      } else {
-        const challengeResult = await createChallenge({
-          purpose: 'authentication',
-          ttlSeconds: 300
-        })
-
-        options = await generateAuthenticationOptions(challengeResult.challenge)
       }
-    } else {
-      const challengeResult = await createChallenge({
-        purpose: 'authentication',
-        ttlSeconds: 300
-      })
-
-      options = await generateAuthenticationOptions(challengeResult.challenge)
     }
 
     logAPIRequest(ip, userAgent, 'POST', '/api/webauthn/authenticate/start', undefined, 200)
 
-    return NextResponse.json({ options }, { status: 200 })
+    return NextResponse.json({ options, hasCredentials, hasTotp }, { status: 200 })
   } catch (error) {
     console.error('WebAuthn authenticate start error:', error)
     return NextResponse.json(

@@ -123,6 +123,18 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Auto-enable 2FA if not already enabled (first security key registration)
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { twoFactorEnabled: true }
+    })
+    if (currentUser && !currentUser.twoFactorEnabled) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { twoFactorEnabled: true }
+      })
+    }
+
     logAPIRequest(
       ip,
       userAgent,

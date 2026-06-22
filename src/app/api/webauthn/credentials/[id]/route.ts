@@ -111,24 +111,24 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const limitedResponse = await authRateLimit(request)
-  if (limitedResponse) return limitedResponse
-
-  const session = await auth()
-
-  if (!session?.user?.id) {
-    logAPIRequest(
-      getClientIp(request),
-      request.headers.get('user-agent') || 'unknown',
-      'DELETE',
-      '/api/webauthn/credentials/[id]',
-      undefined,
-      401
-    )
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    const limitedResponse = await authRateLimit(request)
+    if (limitedResponse) return limitedResponse
+
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      logAPIRequest(
+        getClientIp(request),
+        request.headers.get('user-agent') || 'unknown',
+        'DELETE',
+        '/api/webauthn/credentials/[id]',
+        undefined,
+        401
+      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id } = await params
 
     const credential = await prisma.webAuthnCredential.findFirst({
@@ -164,31 +164,45 @@ export async function DELETE(
         where: { id: session.user.id },
         select: {
           twoFactorEnabled: true,
-          twoFactorBackupCodes: true,
+          twoFactorSecret: true,
         },
       })
 
+      // hasRecovery means the user has a valid TOTP secret as fallback.
+      // Backup codes alone are NOT usable without a TOTP secret
+      // (confirmed by /api/2fa/login which requires twoFactorSecret !== null).
       const hasRecovery =
         user?.twoFactorEnabled === true &&
-        Array.isArray(user.twoFactorBackupCodes) &&
-        user.twoFactorBackupCodes.length > 0
+        user.twoFactorSecret !== null
 
       if (!hasRecovery) {
+        // No recovery option — delete the credential and disable 2FA
+        await prisma.webAuthnCredential.delete({
+          where: { id: credential.id },
+        })
+
+        if (user?.twoFactorEnabled) {
+          await prisma.user.update({
+            where: { id: session.user.id },
+            data: { twoFactorEnabled: false },
+          })
+        }
+
         logAPIRequest(
           getClientIp(request),
           request.headers.get('user-agent') || 'unknown',
           'DELETE',
           `/api/webauthn/credentials/${id}`,
           session.user.id,
-          400
+          200
         )
-        return NextResponse.json(
-          {
-            error:
-              'Cannot remove your only security factor. Add TOTP or another key first.',
-          },
-          { status: 400 }
-        )
+
+        return NextResponse.json({
+          success: true,
+          twoFactorDisabled: true,
+          message:
+            'Security key removed. Two-factor authentication was disabled as no second factor remains.',
+        })
       }
     }
 
@@ -213,9 +227,12 @@ export async function DELETE(
       request.headers.get('user-agent') || 'unknown',
       'DELETE',
       '/api/webauthn/credentials/[id]',
-      session.user.id,
+      undefined,
       500
     )
+    if (error instanceof Response) {
+      return error
+    }
     return NextResponse.json(
       { error: 'Failed to delete credential' },
       { status: 500 }

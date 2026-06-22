@@ -76,7 +76,6 @@ function AdminLoginContent() {
                 placeholder="Email"
                 required
                 className="pl-10"
-                autoComplete="email"
               />
             </div>
 
@@ -88,7 +87,6 @@ function AdminLoginContent() {
                 placeholder="Password"
                 required
                 className="pl-10"
-                autoComplete="current-password"
               />
             </div>
 

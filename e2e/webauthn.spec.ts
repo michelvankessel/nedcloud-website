@@ -79,6 +79,16 @@ test.describe('WebAuthn Registration and Authentication', () => {
   });
 
   test.beforeEach(async () => {
+    // Clear any cookies from previous tests
+    await context.clearCookies();
+
+    // Reset server-side rate limits to prevent bleed between tests
+    try {
+      await fetch(`${BASE_URL}/api/test/clear-rate-limit`, { method: 'POST' });
+    } catch {
+      // Ignore errors - endpoint unavailable in production
+    }
+
     page = await context.newPage();
 
     // Create CDP session for virtual authenticator and enable WebAuthn environment
@@ -178,14 +188,20 @@ test.describe('WebAuthn Registration and Authentication', () => {
   async function logout(): Promise<void> {
     console.log('Logging out...');
 
-    // Navigate to signout endpoint
-    await page.goto(`${BASE_URL}/api/auth/signout`);
+    // Get CSRF token from NextAuth, then POST signout with it
+    await page.evaluate(async () => {
+      const csrfRes = await fetch('/api/auth/csrf')
+      const { csrfToken } = await csrfRes.json()
+      await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ csrfToken, json: 'true' })
+      })
+    })
 
-    // Wait a moment for signout to complete
-    await page.waitForTimeout(1000);
-
-    // Clear cookies to ensure session is gone
-    await context.clearCookies();
+    // Navigate to login to confirm we're logged out
+    await page.goto(`${BASE_URL}/admin/login`);
+    await page.waitForSelector('input[name="email"]', { timeout: WEBAUTHN_TIMEOUT });
 
     console.log('Logout complete');
   }

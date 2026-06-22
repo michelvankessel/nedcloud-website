@@ -102,7 +102,7 @@ export const Contact = () => {
                 <p className="text-gray-400">Thank you for reaching out. I&apos;ll get back to you soon.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" suppressHydrationWarning>
                 {error && (
                   <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
                     {error}
@@ -116,7 +116,6 @@ export const Contact = () => {
                       placeholder="Your Name"
                       required
                       className="pl-10"
-                      autoComplete="name"
                     />
                   </div>
                   <div className="relative">
@@ -127,18 +126,16 @@ export const Contact = () => {
                       placeholder="Email Address"
                       required
                       className="pl-10"
-                      autoComplete="email"
                     />
                   </div>
                 </div>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                  <Input
-                    name="company"
-                    placeholder="Company (optional)"
-                    className="pl-10"
-                    autoComplete="organization"
-                  />
+                    <Input
+                      name="company"
+                      placeholder="Company (optional)"
+                      className="pl-10"
+                    />
                 </div>
                 <div>
                   <textarea
@@ -146,7 +143,7 @@ export const Contact = () => {
                     placeholder="Tell me about your project..."
                     required
                     rows={5}
-                    autoComplete="off"
+                    suppressHydrationWarning
                     className="w-full px-4 py-3 bg-dark-800/50 border border-dark-600 rounded-lg text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition-all resize-none"
                   />
                 </div>
@@ -157,7 +154,7 @@ export const Contact = () => {
                     id="_hp"
                     name="_hp"
                     tabIndex={-1}
-                    autoComplete="off"
+                    suppressHydrationWarning
                   />
 <input
   type="hidden"

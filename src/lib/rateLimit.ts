@@ -65,4 +65,8 @@ export function cleanupRateLimitStore(): void {
   }
 }
 
+export function clearRateLimitStore(): void {
+  rateLimitStore.clear()
+}
+
 setInterval(cleanupRateLimitStore, 60 * 1000)
