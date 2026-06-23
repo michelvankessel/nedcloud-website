@@ -64,3 +64,6 @@ playwright-report/
 .sisyphus/
 .omo/
 AGENTS.md
+
+# Visual Studio (Code)
+*.code-workspace
